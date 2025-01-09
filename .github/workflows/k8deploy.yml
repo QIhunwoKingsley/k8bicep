@@ -1,0 +1,35 @@
+name: Deploy AKS Cluster and Kubernetes Resources
+
+on:
+  push: # Whatever trigger you prefer
+    
+
+
+jobs:
+  deploy-infra:
+    runs-on: # Use a runner of your choice
+
+    steps:
+    - name: 'Checkout Repository'
+      uses: actions/checkout@v3
+
+    - name: 'Azure Login'
+      run: |
+        az --version
+        az login --service-principal --username --password --tenant 
+        az account set --subscription <your subscription>
+        git_repo_name=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)
+        echo $git_repo_name
+        echo "Logged into Azure and set mainetnance automation"
+        
+    - name: Deploy AKS Cluster
+      run: |
+        az deployment group create --resource-group <your rg> --template-file bicep/main.bicep --name <any name>
+
+    - name: Set up kubectl
+      run: |
+        az aks get-credentials --resource-group <your rg> --name <any name>
+
+    - name: Deploy Kubernetes Resources
+      run: |
+        kubectl apply -f kubernetes/k8-resources.yaml
